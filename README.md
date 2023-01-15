@@ -13,7 +13,8 @@ Sample apps and docs:
 
 Commands:
 
- * symfony new symfony_database --webapp
+ * Existing project: composer install
+ * New project: symfony new symfony_database --webapp
  * php bin/console about
  * composer require symfony/orm-pack
  * composer require --dev symfony/maker-bundle
