@@ -17,6 +17,7 @@ Commands:
  * New project: symfony new symfony_database --webapp
  * php bin/console about
  * composer require symfony/orm-pack
+ * composer require symfony/form
  * composer require --dev symfony/maker-bundle
  * php bin/console doctrine:database:create
  * php bin/console make:entity
