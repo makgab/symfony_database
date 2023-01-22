@@ -8,26 +8,41 @@ use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Form\Type\ProductType;
+use Symfony\Component\HttpFoundation\Request;
 
 class ProductController extends AbstractController
 {
     #[Route('/product', name: 'create_product')]
-    public function createProduct(ManagerRegistry $doctrine): Response
+    public function createProduct(ManagerRegistry $doctrine, Request $request): Response
     {
         $entityManager = $doctrine->getManager();
 
         $product = new Product();
         $product->setName('Keyboard');
         $product->setPrice(1999);
-        # $product->setDescription('Ergonomic and stylish!');
 
-        // tell Doctrine you want to (eventually) save the Product (no queries yet)
-        $entityManager->persist($product);
+        # FORM ------------------------------------------------
+        $form = $this->createForm(ProductType::class, $product);
 
-        // actually executes the queries (i.e. the INSERT query)
-        $entityManager->flush();
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            // $form->getData() holds the submitted values
+            // but, the original `$task` variable has also been updated
+            $product = $form->getData();
 
-        return new Response('Saved new product with id '.$product->getId());
+            // ... perform some action, such as saving the task to the database
+            // tell Doctrine you want to (eventually) save the Product (no queries yet)
+            $entityManager->persist($product);
+            // actually executes the queries (i.e. the INSERT query)
+            $entityManager->flush();
+            return $this->redirectToRoute('create_product');
+        }
+
+        return $this->render('product/new.html.twig', [
+        'form' => $form,
+        ]);
+        # -----------------------------------------------------
     }
 
     #[Route('/product/{id}', name: 'product_show')]
