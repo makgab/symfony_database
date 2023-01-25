@@ -56,16 +56,16 @@ class ProductController extends AbstractController
             );
         }
 
-        return new Response('Check out this great product: '.$product->getName());
+        // return new Response('Check out this great product: '.$product->getName().' ('.$product->getId().') '.$product->getPrice());
 
         // or render a template
         // in the template, print things with {{ product.name }}
-        // return $this->render('product/show.html.twig', ['product' => $product]);
+        return $this->render('product/show.html.twig', ['product' => $product]);
     }
 
 
     #[Route('/product/edit/{id}', name: 'product_edit')]
-    public function update(ManagerRegistry $doctrine, int $id): Response
+    public function update(ManagerRegistry $doctrine, Request $request, int $id): Response
     {
         $entityManager = $doctrine->getManager();
         $product = $entityManager->getRepository(Product::class)->find($id);
@@ -76,17 +76,32 @@ class ProductController extends AbstractController
             );
         }
 
-        $product->setName('New product name!');
-        $entityManager->flush();
+        # FORM ------------------------------------------------
+        $form = $this->createForm(ProductType::class, $product);
 
-        return $this->redirectToRoute('product_show', [
-            'id' => $product->getId()
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            // $form->getData() holds the submitted values
+            // but, the original `$task` variable has also been updated
+            // $product = $form->getData();
+
+            // ... perform some action, such as saving the task to the database
+            // tell Doctrine you want to (eventually) save the Product (no queries yet)
+            $entityManager->persist($product);
+            // actually executes the queries (i.e. the INSERT query)
+            $entityManager->flush();
+            return $this->redirectToRoute('product_show', ['id' => $id]);
+        }
+
+        return $this->render('product/new.html.twig', [
+        'form' => $form,
         ]);
+        # -----------------------------------------------------
     }
 
 
     #[Route('/product/delete/{id}', name: 'product_delete')]
-    public function delete(ManagerRegistry $doctrine, int $id): Response
+    public function delete(ManagerRegistry $doctrine, Request $request, int $id): Response
     {
         $entityManager = $doctrine->getManager();
         $product = $entityManager->getRepository(Product::class)->find($id);
